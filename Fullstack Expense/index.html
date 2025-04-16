@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+</head>
+<body>
+    <h1>Expense Tracker</h1>
+
+    <!-- Form to add a new expense -->
+    <form onsubmit="handleFormSubmit(event)">
+        <input type="number" id="amount" placeholder="Amount" required />
+        <input type="text" id="description" placeholder="Description" required />
+        <button type="submit">Add Expense</button>
+    </form>
+
+    <ul id="expenseList">
+        <!-- List of expenses will be displayed here -->
+    </ul>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        async function fetchExpenses() {
+            try {
+                const response = await axios.get('http://localhost:3000/expenses');
+                const expenses = response.data;
+                const expenseList = document.getElementById('expenseList');
+                expenseList.innerHTML = ''; // Clear the list before adding new expenses
+                expenses.forEach(expense => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${expense.amount} - ${expense.description}`;
+                    listItem.innerHTML += `<button onclick="deleteExpense(${expense.id})">Delete</button>`;
+                    expenseList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error('Error fetching expenses:', error);
+            }
+        }
+
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            const amount = document.getElementById('amount').value;
+            const description = document.getElementById('description').value;
+            
+            try {
+                await axios.post('http://localhost:3000/expenses/add', {
+                    amount,
+                    description
+                });
+                fetchExpenses(); // Refresh the expense list
+            } catch (error) {
+                console.error('Error adding expense:', error);
+            }
+        }
+
+        async function deleteExpense(id) {
+            try {
+                await axios.delete(`http://localhost:3000/expenses/delete/${id}`);
+                fetchExpenses(); // Refresh the expense list
+            } catch (error) {
+                console.error('Error deleting expense:', error);
+            }
+        }
+
+        // Fetch expenses on page load
+        fetchExpenses();
+    </script>
+</body>
+</html>
